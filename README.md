@@ -1,50 +1,143 @@
-# Welcome to your Expo app 👋
+# 🛒 Offline-First Shopping List App (Expo + React Native)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+## 📌 Overview
 
-## Get started
+This project is a **React Native mobile application built using Expo (managed workflow)** that allows users to create and manage shopping lists with a strong focus on:
 
-1. Install dependencies
+- Offline-first functionality
+- Clean architecture
+- Scalable state management
+- Smooth mobile UX
 
-   ```bash
-   npm install
-   ```
+The app works entirely offline using a local SQLite database and persists data across app restarts.
 
-2. Start the app
+---
 
-   ```bash
-   npx expo start
-   ```
+## 🚀 Tech Stack
 
-In the output, you'll find options to open the app in a
+- React Native (Expo SDK 54)
+- TypeScript
+- Expo Router (file-based navigation)
+- Redux Toolkit (state management)
+- SQLite (`expo-sqlite`) for local persistence
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## 📱 Features
 
-## Get a fresh project
+### ✅ Lists Management
 
-When you're ready, run:
+- Create shopping lists with:
+  - Name (required)
+  - Priority (High / Medium / Low)
+  - Optional color/icon
+- View all lists
+- Search lists by name
+
+---
+
+### ✅ Items Management (Per List)
+
+- Add items (name required, quantity optional)
+- Edit item details (name, quantity, notes)
+- Mark items as completed
+- Delete items (tap / swipe)
+- Bulk actions:
+  - Mark all as completed
+  - Delete completed items
+
+---
+
+### ✅ Offline-First Storage
+
+- Fully functional without internet
+- Data persists after app restart
+- Implemented using SQLite via Expo
+
+---
+
+### ✅ Navigation & Deep Linking
+
+- Lists Screen
+- List Details Screen
+- Settings Screen
+
+Deep linking supported:
+myapp://list/:listId
+
+---
+
+### ✅ UX & UI
+
+- Clean, mobile-first design
+- Swipe gestures for actions
+- Empty states:
+  - “No lists yet”
+  - “Add your first item”
+- Loading and error handling states
+
+---
+
+## 🧠 Architecture
+
+The project follows a **layered architecture** for maintainability and scalability:
+
+UI (Screens / Components)
+↓
+Redux (State Layer)
+↓
+Services (Business Logic)
+↓
+Repository Layer (SQLite Queries)
+↓
+Database (expo-sqlite)
+
+---
+
+## 📂 Project Structure
+
+app/ # Expo Router (navigation)
+src/
+├── components/ # Reusable UI components
+├── store/ # Redux Toolkit store & slices
+├── database/ # SQLite setup and queries
+├── services/ # Business logic layer
+├── hooks/ # Custom hooks
+├── utils/ # Helpers & validators
+├── types/ # TypeScript types
+
+---
+
+## 🗄️ Data Model
+
+### Lists Table
+
+| Column   | Type    | Description          |
+| -------- | ------- | -------------------- |
+| id       | INTEGER | Primary key          |
+| name     | TEXT    | List name (required) |
+| priority | TEXT    | High / Medium / Low  |
+| color    | TEXT    | Optional             |
+
+---
+
+### Items Table
+
+| Column    | Type    | Description          |
+| --------- | ------- | -------------------- |
+| id        | INTEGER | Primary key          |
+| listId    | INTEGER | Foreign key (List)   |
+| name      | TEXT    | Item name (required) |
+| quantity  | TEXT    | Optional             |
+| notes     | TEXT    | Optional             |
+| completed | INTEGER | 0 = false, 1 = true  |
+
+---
+
+## ⚙️ Setup & Run
+
+### 1. Install dependencies
 
 ```bash
-npm run reset-project
+npm install
 ```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
