@@ -1,15 +1,17 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
+  Alert,
   FlatList,
   Modal,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-// ---------- TYPES ----------
 const priorities = ["High", "Medium", "Low"];
 const colors = ["#6366F1", "#EC4899", "#22C55E", "#F59E0B"];
 
@@ -17,18 +19,15 @@ export default function App() {
   const [lists, setLists] = useState([]);
   const [search, setSearch] = useState("");
 
-  // Modal states
   const [modalVisible, setModalVisible] = useState(false);
   const [newListName, setNewListName] = useState("");
   const [priority, setPriority] = useState("Medium");
   const [selectedColor, setSelectedColor] = useState(colors[0]);
 
-  // Filter lists
   const filtered = lists.filter((l) =>
     l.name.toLowerCase().includes(search.toLowerCase()),
   );
 
-  // ---------- ADD LIST ----------
   const addList = () => {
     if (!newListName.trim()) return;
 
@@ -47,7 +46,6 @@ export default function App() {
     setModalVisible(false);
   };
 
-  // ---------- ITEM ACTIONS ----------
   const addItem = (listId) => {
     const item = {
       id: Date.now().toString(),
@@ -112,137 +110,96 @@ export default function App() {
     );
   };
 
-  // ---------- UI ----------
   const renderItem = ({ item }) => {
     const total = item.items.length;
     const completed = item.items.filter((i) => i.completed).length;
     const progress = total === 0 ? 0 : completed / total;
 
     return (
-      <TouchableOpacity
-        activeOpacity={0.85}
-        style={{
-          backgroundColor: "#F8FAFC",
-          padding: 16,
-          borderRadius: 18,
-          marginBottom: 14,
-          borderWidth: 1,
-          borderColor: "#E2E8F0",
-        }}
-      >
-        {/* Top Row */}
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Text style={{ fontSize: 18, fontWeight: "700", color: "#1E293B" }}>
-            {item.name}
-          </Text>
+      <TouchableOpacity activeOpacity={0.85} style={styles.card}>
+        <View style={styles.headerRow}>
+          <Text style={styles.title}>{item.name}</Text>
 
           <View
-            style={{
-              paddingHorizontal: 10,
-              paddingVertical: 4,
-              borderRadius: 20,
-              backgroundColor:
-                item.priority === "High"
-                  ? "#FEE2E2"
-                  : item.priority === "Medium"
-                    ? "#FEF3C7"
-                    : "#DCFCE7",
-            }}
+            style={[
+              styles.priorityBadge,
+              item.priority === "High"
+                ? styles.highBg
+                : item.priority === "Medium"
+                  ? styles.mediumBg
+                  : styles.lowBg,
+            ]}
           >
             <Text
-              style={{
-                fontSize: 12,
-                fontWeight: "600",
-                color:
-                  item.priority === "High"
-                    ? "#DC2626"
-                    : item.priority === "Medium"
-                      ? "#D97706"
-                      : "#16A34A",
-              }}
+              style={[
+                styles.priorityText,
+                item.priority === "High"
+                  ? styles.highText
+                  : item.priority === "Medium"
+                    ? styles.mediumText
+                    : styles.lowText,
+              ]}
             >
               {item.priority}
             </Text>
           </View>
         </View>
 
-        {/* Sub Info */}
-        <Text style={{ color: "#64748B", marginTop: 6 }}>
+        <Text style={styles.subText}>
           {completed}/{total} items completed
         </Text>
 
-        {/* Progress Bar */}
-        <View
-          style={{
-            height: 6,
-            backgroundColor: "#E2E8F0",
-            borderRadius: 10,
-            marginTop: 12,
-            overflow: "hidden",
-          }}
-        >
+        <View style={styles.progressBar}>
           <View
-            style={{
-              width: `${progress * 100}%`,
-              height: "100%",
-              backgroundColor: item.color,
-            }}
+            style={[
+              styles.progressFill,
+              { width: `${progress * 100}%`, backgroundColor: item.color },
+            ]}
           />
         </View>
 
-        {/* Divider */}
-        <View
-          style={{
-            height: 1,
-            backgroundColor: "#E2E8F0",
-            marginVertical: 12,
-          }}
-        />
+        {item.items.map((i) => (
+          <View key={i.id} style={styles.itemRow}>
+            <TouchableOpacity onPress={() => toggleItem(item.id, i.id)}>
+              <Text
+                style={[styles.itemText, i.completed && styles.completedText]}
+              >
+                {i.name}
+              </Text>
+            </TouchableOpacity>
 
-        {/* Items Preview (max 2 items) */}
-        {item.items.slice(0, 2).map((i) => (
-          <Text
-            key={i.id}
-            style={{
-              color: "#334155",
-              textDecorationLine: i.completed ? "line-through" : "none",
-              marginBottom: 4,
-            }}
-          >
-            • {i.name}
-          </Text>
+            <TouchableOpacity
+              onPress={() =>
+                Alert.alert(
+                  "Delete Item",
+                  `Are you sure you want to delete "${i.name}"?`,
+                  [
+                    { text: "Cancel", style: "cancel" },
+                    {
+                      text: "Delete",
+                      style: "destructive",
+                      onPress: () => deleteItem(item.id, i.id),
+                    },
+                  ],
+                )
+              }
+            >
+              <Ionicons name="trash" size={18} color="red" />
+            </TouchableOpacity>
+          </View>
         ))}
 
-        {item.items.length > 2 && (
-          <Text style={{ color: "#94A3B8", marginTop: 4 }}>
-            +{item.items.length - 2} more items
-          </Text>
-        )}
-
-        {/* Actions */}
-        <View style={{ flexDirection: "row", marginTop: 12 }}>
+        <View style={styles.actions}>
           <TouchableOpacity onPress={() => addItem(item.id)}>
-            <Text
-              style={{ marginRight: 16, color: "#6366F1", fontWeight: "600" }}
-            >
-              + Add Item
-            </Text>
+            <Text style={styles.add}>+ Add Item</Text>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => markAllComplete(item.id)}>
-            <Text style={{ marginRight: 16, color: "#16A34A" }}>
-              Complete All
-            </Text>
+            <Text style={styles.complete}>Complete All</Text>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => deleteCompleted(item.id)}>
-            <Text style={{ color: "#DC2626" }}>Clear Done</Text>
+            <Text style={styles.clear}>Clear Done</Text>
           </TouchableOpacity>
         </View>
       </TouchableOpacity>
@@ -250,101 +207,215 @@ export default function App() {
   };
 
   return (
-    <View style={{ flex: 1, padding: 16, backgroundColor: "#E2E8F0" }}>
-      <Text style={{ fontSize: 28, fontWeight: "700", marginBottom: 16 }}>
-        My Lists
-      </Text>
+    <SafeAreaView style={styles.container}>
+      <Text style={styles.heading}>My Lists</Text>
 
       <TextInput
         placeholder="Search lists..."
         value={search}
         onChangeText={setSearch}
-        style={{
-          backgroundColor: "#F8FAFC",
-          padding: 10,
-          borderRadius: 10,
-          marginBottom: 16,
-        }}
+        style={styles.input}
       />
 
       <FlatList
         data={filtered}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        ListEmptyComponent={<Text>No lists yet</Text>}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text>No lists yet</Text>
+          </View>
+        }
       />
 
       <TouchableOpacity
         onPress={() => setModalVisible(true)}
-        style={{
-          position: "absolute",
-          bottom: 30,
-          right: 20,
-          backgroundColor: "#6366F1",
-          width: 60,
-          height: 60,
-          borderRadius: 30,
-          justifyContent: "center",
-          alignItems: "center",
-        }}
+        style={styles.fab}
       >
         <Ionicons name="add" size={30} color="white" />
       </TouchableOpacity>
 
       <Modal visible={modalVisible} transparent animationType="slide">
-        <View
-          style={{
-            flex: 1,
-            justifyContent: "center",
-            padding: 20,
-            backgroundColor: "rgba(0,0,0,0.3)",
-          }}
-        >
-          <View
-            style={{
-              backgroundColor: "#F8FAFC",
-              padding: 20,
-              borderRadius: 16,
-            }}
-          >
-            <Text style={{ fontSize: 18, marginBottom: 10 }}>Create List</Text>
-
+        <View style={styles.modalOverlay}>
+          <View style={styles.modal}>
+            <Text style={styles.modalTitle}>Create List</Text>
+            <Ionicons
+              size={20}
+              name={"close"}
+              onPress={() => setModalVisible(false)}
+              style={styles.modalClose}
+            />
             <TextInput
               placeholder="List name"
               value={newListName}
               onChangeText={setNewListName}
-              style={{ borderWidth: 1, marginBottom: 10, padding: 10 }}
+              style={styles.modalInput}
             />
 
-            <View style={{ flexDirection: "row", marginBottom: 10 }}>
+            <View style={styles.row}>
               {priorities.map((p) => (
-                <TouchableOpacity key={p} onPress={() => setPriority(p)}>
-                  <Text style={{ marginRight: 10 }}>{p}</Text>
+                <TouchableOpacity
+                  style={styles.optionButton}
+                  key={p}
+                  onPress={() => setPriority(p)}
+                >
+                  <Text
+                    style={[
+                      styles.option,
+                      { fontWeight: p === priority ? "700" : "400" },
+                    ]}
+                  >
+                    {p}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </View>
 
-            <View style={{ flexDirection: "row", marginBottom: 10 }}>
+            <View style={styles.row}>
               {colors.map((c) => (
                 <TouchableOpacity
                   key={c}
                   onPress={() => setSelectedColor(c)}
-                  style={{
-                    width: 25,
-                    height: 25,
-                    backgroundColor: c,
-                    marginRight: 10,
-                  }}
+                  style={[
+                    styles.colorBox,
+                    {
+                      backgroundColor: c,
+                      borderWidth: 2,
+                      borderColor: c === selectedColor ? "#000" : "transparent",
+                      borderRadius: 50,
+                    },
+                  ]}
                 />
               ))}
             </View>
 
             <TouchableOpacity onPress={addList}>
-              <Text>Add List</Text>
+              <Text style={styles.addBtn}>Add List</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1, padding: 16, backgroundColor: "#E2E8F0" },
+  heading: { fontSize: 28, fontWeight: "700", marginBottom: 16 },
+
+  input: {
+    backgroundColor: "#F8FAFC",
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 16,
+  },
+
+  card: {
+    backgroundColor: "#F8FAFC",
+    padding: 16,
+    borderRadius: 18,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+
+  title: { fontSize: 18, fontWeight: "700", color: "#1E293B" },
+
+  subText: { color: "#64748B", marginTop: 6 },
+
+  priorityBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+
+  highBg: { backgroundColor: "#FEE2E2" },
+  mediumBg: { backgroundColor: "#FEF3C7" },
+  lowBg: { backgroundColor: "#DCFCE7" },
+
+  priorityText: { fontSize: 12, fontWeight: "600" },
+  highText: { color: "#DC2626" },
+  mediumText: { color: "#D97706" },
+  lowText: { color: "#16A34A" },
+
+  progressBar: {
+    height: 6,
+    backgroundColor: "#E2E8F0",
+    borderRadius: 10,
+    marginTop: 12,
+    overflow: "hidden",
+  },
+
+  progressFill: { height: "100%" },
+
+  itemRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
+  },
+
+  itemText: { color: "#334155" },
+  completedText: { textDecorationLine: "line-through" },
+
+  actions: { flexDirection: "row", marginTop: 12 },
+  add: { marginRight: 16, color: "#6366F1", fontWeight: "600" },
+  complete: { marginRight: 16, color: "#16A34A" },
+  clear: { color: "#DC2626" },
+
+  emptyContainer: { alignItems: "center", marginTop: 50 },
+
+  fab: {
+    position: "absolute",
+    bottom: 30,
+    right: 20,
+    backgroundColor: "#6366F1",
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    padding: 20,
+    backgroundColor: "rgba(0,0,0,0.3)",
+  },
+
+  modal: {
+    backgroundColor: "#F8FAFC",
+    padding: 20,
+    borderRadius: 16,
+  },
+
+  modalTitle: { fontSize: 18, marginBottom: 10 },
+
+  modalInput: {
+    borderWidth: 1,
+    marginBottom: 10,
+    padding: 10,
+    borderRadius: 5,
+  },
+
+  row: { flexDirection: "row", marginBottom: 10 },
+  colorBox: { width: 25, height: 25, marginRight: 10 },
+
+  addBtn: { marginTop: 10 },
+  optionButton: {
+    padding: 6,
+    borderRadius: 6,
+    backgroundColor: "#E2E8F0",
+    marginRight: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 10,
+  },
+  modalClose: { position: "absolute", top: 20, right: 20 },
+});
