@@ -141,3 +141,21 @@ src/
 ```bash
 npm install
 ```
+
+## 📸 Screenshots
+
+### Lists Screen
+
+![Lists Screen](src/assets/SS/1.png)
+
+### List Details Screen
+
+![List Details Screen](src/assets/SS/2.png)
+
+### Items Management
+
+![Items Management](src/assets/SS/3.png)
+
+### Settings Screen
+
+![Settings Screen](src/assets/SS/4.png)
